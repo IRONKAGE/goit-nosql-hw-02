@@ -1,0 +1,14 @@
+pinecone-client==4.1.0 # Згідно ДЗ але є й новіші версії https://docs.pinecone.io/reference/sdks/python/overview
+sentence-transformers==3.0.1
+rank-bm25==0.2.2
+kaggle==1.6.14
+pandas==2.2.2
+numpy==1.26.4
+tqdm==4.66.4
+pyarrow==23.0.1
+python-dotenv==1.0.1
+streamlit==1.35.0
+psutil==5.9.8         # Додано для автодетекції RAM (Smart Routing)
+safetensors>=0.4.0    # Додано для безпечного завантаження моделей
+plotly==5.22.0        # Для інтерактивної 3D-візуалізації простору
+scikit-learn==1.4.2   # Для алгоритму зменшення розмірності (PCA)

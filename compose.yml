@@ -1,0 +1,64 @@
+# ==============================================================================
+# MLOps & Vector Database Infrastructure (Enterprise / FAANG Standard)
+# Created by IRONKAGE | Task 2: Pinecone Semantic Search
+# ==============================================================================
+
+# ІЗОЛЬОВАНА МЕРЕЖА: Ніколи не використовуємо дефолтний bridge
+networks:
+  arxiv_vector_net:
+    driver: bridge
+
+services:
+  # ============================================================================
+  # PINECONE LOCAL EMULATOR (High-Performance In-Memory CI/CD Target)
+  # ============================================================================
+  pinecone-local:
+    image: ghcr.io/pinecone-io/pinecone-local:latest # Pinecone Local: In-Memory емулятор векторної БД, оптимізований для семантичного пошуку та RAG-інтеграцій
+    container_name: ironkage-pinecone-local
+    restart: unless-stopped
+    networks:
+      - arxiv_vector_net
+
+    # BINDING SECURITY: Прокидаємо порт ВИКЛЮЧНО на localhost
+    ports:
+      - "5080-5089:5080-5089" # Пул портів Pinecone Local API (5080-5089)
+
+    # Запускаємо файлову систему БД виключно в RAM!
+    # Забезпечує блискавичну швидкість I/O та синхронізовано з лімітом контейнера
+    tmpfs:
+      - /data:rw,noexec,nosuid,size=2G
+
+    # RESOURCE LIMITS: Слід узгоджувати з розміром tmpfs
+    # 2GB достатньо для датасету в 50к-100к векторів
+    # 💡 Розрахунок пам'яті:
+    # 1 вектор (768 Float32) ≈ 3 КБ
+    # 5 млн векторів ≈ 15 ГБ "чистих" даних + ≈ 10-15 ГБ на HNSW індекси та метадані
+    # 32GB - це стабільний і безпечний ліміт для In-Memory датасету в 5 мільйонів векторів
+    # 16GB - це резевувати слід мінімум 16 ГБ для самого Pinecone Local, щоб уникнути OOM при побудові індексів
+    # Також для побудови графів з 5 млн векторів краще дати більше ядер, наприклад: 8.0
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          memory: 512M
+
+    # SECURITY OPT: Hardening контейнера (заборона root ескалації)
+    security_opt:
+      - no-new-privileges:true
+
+    # LOG ROTATION: Захист хосту від розростання логів
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "15m"
+        max-file: "4"
+
+    # HEALTHCHECK: Надійний тригер готовності API для оркестраторів
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
