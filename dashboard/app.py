@@ -82,6 +82,31 @@ except Exception as e:
     st.error(f"Деталі помилки: {e}")
     st.stop()
 
+st.sidebar.divider()
+st.sidebar.subheader("📅 Фільтри (Метадані)")
+
+# 🛡️ БЕЗПЕЧНЕ ДИНАМІЧНЕ ВИЗНАЧЕННЯ РОКІВ
+if 'year' in df.columns:
+    # 1. Примусово конвертуємо в числа (текст і помилки стануть NaN)
+    # 2. Відкидаємо всі NaN (dropna)
+    # 3. Конвертуємо залишок у цілі числа (int)
+    valid_years = pd.to_numeric(df['year'], errors='coerce').dropna().astype(int)
+
+    if not valid_years.empty:
+        min_year = int(valid_years.min())
+        max_year = int(valid_years.max())
+    else:
+        min_year, max_year = 2000, 2026 # Фолбек, якщо всі дані биті
+else:
+    min_year, max_year = 2000, 2026
+
+selected_year = st.sidebar.slider(
+    "Шукати публікації починаючи з:",
+    min_value=min_year,
+    max_value=max_year,
+    value=min_year,
+    help="Фільтрує результати як у семантичному (Pinecone), так і в лексичному (BM25) просторах."
+)
 
 # --- Головний екран ---
 st.title("🔬 AI Research Assistant - Hybrid Engine Studio")
@@ -105,14 +130,29 @@ if query:
         vec = q_vec_raw.tolist()
 
         # Обов'язково include_values=True для 3D графіки!
-        res_vec = index.query(vector=vec, top_k=top_k_fetch, include_metadata=True, include_values=True)
+        res_vec = index.query(
+            vector=vec,
+            top_k=top_k_fetch,
+            include_metadata=True,
+            include_values=True,
+            filter={"year": {"$gte": selected_year}} # Фільтр по роках
+        )
         vec_docs = [{"id": m['metadata']['arxiv_id'], "title": m['metadata']['title'], "score": m['score']} for m in res_vec.get('matches', [])]
 
         # Лексичний простір (BM25)
         tokenized_query = query.lower().split()
         scores = bm25.get_scores(tokenized_query)
-        top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k_fetch]
-        bm25_docs = [{"id": df.iloc[i]['id'], "title": df.iloc[i]['title'], "score": scores[i]} for i in top_indices]
+
+        # 🛡️ СИНХРОНІЗАЦІЯ ФІЛЬТРІВ: Залишаємо тільки ті індекси, рік яких >= selected_year
+        valid_indices = df.index[df['year'] >= selected_year].tolist()
+
+        # Збираємо пари (індекс, скор) ТІЛЬКИ для відфільтрованих статей
+        filtered_scores = [(i, scores[i]) for i in valid_indices]
+
+        # Сортуємо відфільтрований список і беремо top_k
+        top_indices = sorted(filtered_scores, key=lambda x: x[1], reverse=True)[:top_k_fetch]
+
+        bm25_docs = [{"id": df.iloc[i]['id'], "title": df.iloc[i]['title'], "score": score} for i, score in top_indices]
 
         # Reciprocal Rank Fusion (RRF)
         rrf_scores = {}

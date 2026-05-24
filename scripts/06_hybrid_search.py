@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+import sys
 from functools import wraps
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
@@ -178,23 +179,28 @@ def main():
             results.append({"title": title, "rrf_score": score})
         return results
 
-    test_queries = [
-        "BERT fine-tuning",
-        "Yann LeCun convolutional networks",
-        "making computers understand human emotions from text"
-    ]
+    if len(sys.argv) > 1:
+        # Збираємо всі слова після назви скрипта в один рядок
+        user_query = " ".join(sys.argv[1:])
+        test_queries = [user_query]
+    else:
+        test_queries = [
+            "BERT fine-tuning",
+            "Yann LeCun convolutional networks",
+            "making computers understand human emotions from text"
+        ]
 
     for q in test_queries:
         logger.info(f"\n{'='*80}\n🔥 ВЕРИФІКАЦІЯ ЗАПИТУ: '{q}'\n{'='*80}")
         logger.info("[BM25 Lexical Top-3]")
         for i, res in enumerate(search_bm25(q, 3)):
             logger.info(f" - {i+1}. {res['title']}")
-
-        logger.info("\n[Vector Semantic Top-3]")
+        print("")
+        logger.info("[Vector Semantic Top-3]")
         for i, res in enumerate(search_vector(q, 3)):
             logger.info(f" - {i+1}. {res['title']}")
-
-        logger.info("\n[HYBRID RRF RANKING Top-3]")
+        print("")
+        logger.info("[HYBRID RRF RANKING Top-3]")
         for i, res in enumerate(search_hybrid(q, top_k=3)):
             logger.info(f" - 👑 {i+1}. {res['title']} (RRF Скор: {res['rrf_score']:.4f})")
 

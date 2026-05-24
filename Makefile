@@ -97,6 +97,7 @@ help:
 	@echo "    $(GREEN)make search$(RESET)        - (04) Семантичний пошук, фільтрація та порівняння метрик"
 	@echo "    $(GREEN)make chunking$(RESET)      - (05) Порівняння Fixed-size vs Semantic chunking"
 	@echo "    $(GREEN)make hybrid$(RESET)        - (06) Гібридний пошук (BM25 + Vector + Reciprocal Rank Fusion)"
+	@echo "    $(GREEN)make ask$(RESET)           - (07) Шукати в базі даних за власним запитом (параметр Q="ваш запит")"
 	@echo "    $(GREEN)make dashboard$(RESET)     - Запустити інтерактивний BI-дашборд на Streamlit"
 	@echo "--------------------------------------------------------------------------------------------"
 	@echo "  $(YELLOW)[КРОК 4] Керування та очищення:$(RESET)"
@@ -223,6 +224,10 @@ chunking:
 hybrid:
 	@echo "$(CYAN)⚖️ (06) Запуск гібридного пошуку (BM25 + Vector + RRF)...$(RESET)"
 	$(PYTHON) scripts/06_hybrid_search.py
+
+ask:
+	@echo "🔍 Шукаємо: $(Q)"
+	$(PYTHON) scripts/06_hybrid_search.py "$(Q)"
 
 dashboard:
 	@echo "$(CYAN)📈 Запуск Streamlit Dashboard...$(RESET)"
