@@ -254,6 +254,7 @@ print(f"\\nЗбережено в{OUTPUT_FILE}")
 ```py
 # scripts/02_embed.py
 !!! МІСЦЕ ДЛЯ ВАШОГО КОДУ !!!
+# Повний код реалізації знаходиться у файлі: scripts/02_embed.py
 ```
 
 ***У файлі README надайте відповідь на наступне запитання:***
@@ -303,6 +304,7 @@ pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 
 # Створюємо індекс (якщо не існує)
 !!! МІСЦЕ ДЛЯ ВАШОГО КОДУ !!!
+# Повний код реалізації знаходиться у файлі: scripts/03_load_to_pinecone.py
 ```
 
 > ❗️ Чому `abstract` обрізається до 500 символів?
@@ -361,6 +363,7 @@ model = SentenceTransformer(MODEL_NAME)
 df = pd.read_parquet("data/arxiv_subset.parquet")  # для отримання повного abstract
 
 !!! МІСЦЕ ДЛЯ ВАШОГО КОДУ !!!
+# Повний код реалізації знаходиться у файлі: scripts/04_search.py
 ```
 
 ---
@@ -413,6 +416,7 @@ model = SentenceTransformer(MODEL_NAME)
 df = pd.read_parquet("data/arxiv_subset.parquet")
 
 !!! МІСЦЕ ДЛЯ ВАШОГО КОДУ !!!
+# Повний код реалізації знаходиться у файлі: scripts/05_chunking.py
 ```
 
 ---
@@ -472,6 +476,7 @@ model = SentenceTransformer(MODEL_NAME)
 df = pd.read_parquet("data/arxiv_subset.parquet").reset_index(drop=True)
 
 !!! МІСЦЕ ДЛЯ ВАШОГО КОДУ !!!
+# Повний код реалізації знаходиться у файлі: scripts/06_hybrid_search.py
 ```
 
 ---
